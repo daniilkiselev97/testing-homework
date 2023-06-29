@@ -6,10 +6,10 @@ import { CartState, CheckoutFormData, Product, ProductShortInfo } from '../commo
 import { CartApi, ExampleApi } from './api';
 
 export interface ApplicationState {
-    products?: ProductShortInfo[];
-    details: Record<number, Product>;
-    cart: CartState;
-    latestOrderId?: number;
+    products?: ProductShortInfo[]; //[{id:1, number:3, price:200}, {id:2, number:2, price:900}, {id:2, number:1, price:600}]
+    details: Record<number, Product>;  //{id:1, number:2, price:2,description:'this is good item', material:iron, color: blue}
+    cart: CartState;  // {name: 'it', price: 400, count:40} why [ ] ???
+    latestOrderId?: number;  //[]??
 }
 
 export interface EpicDeps {
