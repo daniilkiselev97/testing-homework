@@ -25,7 +25,7 @@ export const Cart: React.FC = () => {
 
     let content: React.ReactNode = null;
 
-    const cartIsEmpty = !Object.keys(cart).length;
+    const cartIsEmpty = !Object.keys(cart).length; //[[1,{...}],[....]]
 
     if (!cartIsEmpty) {
         const rows = Object.entries(cart).map(([id, item], index) => {
