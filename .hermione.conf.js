@@ -9,6 +9,7 @@ module.exports = {
         width: 1920,
         height: 10000
       },
+    screenshotDelay:50,
     
 
     sets: {

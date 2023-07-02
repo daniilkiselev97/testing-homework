@@ -1,9 +1,9 @@
 const { assert } = require('chai');
 
 const assertOptions = {
-    screenshotDelay : 100,
-    captureElementFromTop : true
-}
+    screenshotDelay: 100,
+    captureElementFromTop: true,
+};
 
 // describe('microsoft', async function() {
 //     it('Тест, который пройдет', async function() {
@@ -33,45 +33,127 @@ const assertOptions = {
 //     })
 // })
 describe('Страницы', () => {
-    it('в магазине должны быть страницы: главная, каталог, условия доставки, контакты', async({browser})=>{
-        await browser.url('http://localhost:3000/hw/store/')
-        const mainText = await browser.$('[data-testid="page-name"]').getText()
+    it('в магазине должны быть страницы: главная, каталог, условия доставки, контакты', async ({
+        browser,
+    }) => {
+        await browser.url('http://localhost:3000/hw/store/');
+        const mainText = await browser.$('[data-testid="page-name"]').getText();
         assert.equal(mainText, 'Welcome to Example store!');
 
-        await browser.url('http://localhost:3000/hw/store/catalog')
-        const catalogText = await browser.$('[data-testid="page-name"]').getText()
+        await browser.url('http://localhost:3000/hw/store/catalog');
+        const catalogText = await browser
+            .$('[data-testid="page-name"]')
+            .getText();
         assert.equal(catalogText, 'Catalog');
 
-        await browser.url('http://localhost:3000/hw/store/delivery')
-        const deliveryText = await browser.$('[data-testid="page-name"]').getText()
+        await browser.url('http://localhost:3000/hw/store/delivery');
+        const deliveryText = await browser
+            .$('[data-testid="page-name"]')
+            .getText();
         assert.equal(deliveryText, 'Delivery');
 
-        await browser.url('http://localhost:3000/hw/store/contacts')
-        const contactsText = await browser.$('[data-testid="page-name"]').getText()
+        await browser.url('http://localhost:3000/hw/store/contacts');
+        const contactsText = await browser
+            .$('[data-testid="page-name"]')
+            .getText();
         assert.equal(contactsText, 'Contacts');
-
-    })
+    });
     it('страницы главная, условия доставки, контакты должны иметь статическое содержимое', async ({
         browser,
     }) => {
-
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
-        const [page] = await puppeteer.pages() //выбираем первую вкладку
+        const [page] = await puppeteer.pages(); //выбираем первую вкладку
 
         await page.goto('http://localhost:3000/hw/store/'); //совершаем переход на сайт
-        await page.waitForSelector('[data-page="main-page-wrap"]',{timeout:5000}); //, {ignoreElements: [css Selectors]}
-        await browser.assertView('home', '[data-page="main-page-wrap"]', assertOptions)
+        await page.waitForSelector('[data-page="main-page-wrap"]', {
+            timeout: 5000,
+        }); //, {ignoreElements: [css Selectors]}
+        await browser.assertView(
+            'home',
+            '[data-page="main-page-wrap"]',
+            assertOptions
+        );
 
-        await page.goto('http://localhost:3000/hw/store/delivery/'); 
-        await page.waitForSelector('[data-page="delivery-page-wrap"]',{timeout:5000}); 
-        await browser.assertView('delivery', '[data-page="delivery-page-wrap"]', assertOptions)
+        await page.goto('http://localhost:3000/hw/store/delivery/');
+        await page.waitForSelector('[data-page="delivery-page-wrap"]', {
+            timeout: 5000,
+        });
+        await browser.assertView(
+            'delivery',
+            '[data-page="delivery-page-wrap"]',
+            assertOptions
+        );
 
-        await page.goto('http://localhost:3000/hw/store/contacts/'); 
-        await page.waitForSelector('[data-page="contacts-page-wrap"]',{timeout:5000}); 
-        await browser.assertView('contacts', '[data-page="contacts-page-wrap"]', assertOptions)
+        await page.goto('http://localhost:3000/hw/store/contacts/');
+        await page.waitForSelector('[data-page="contacts-page-wrap"]', {
+            timeout: 5000,
+        });
+        await browser.assertView(
+            'contacts',
+            '[data-page="contacts-page-wrap"]',
+            assertOptions
+        );
+    });
+});
+
+describe('Общие требования', () => {
+    it('вёрстка должна адаптироваться под ширину экрана', async ({
+        browser,
+    }) => {
+        const pages = [
+            {
+                name: 'home',
+                url: '/',
+            },
+            {
+                name: 'catalog',
+                url: '/catalog',
+            },
+            {
+                name: 'delivery',
+                url: '/delivery',
+            },
+            {
+                name: 'contacts',
+                url: '/contacts',
+            },
+            {
+                name: 'cart',
+                url: '/cart',
+            },
+        ];
+
+        const dimensions = [
+            {
+                name: 'mobile',
+                width: 375,
+            },
+            {
+                name: 'tablet',
+                width: 768,
+            },
+            {
+                name: 'laptop',
+                width: 1920,
+            },
+        ];
+
+        for (const page of pages) {
+            for (const dimension of dimensions) {
+                const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+                const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        
+                await tab.goto(`http://localhost:3000/hw/store${page.url}`); //совершаем переход на сайт
+                await browser.setWindowSize(dimension.width, 10000)
+                await browser.assertView(
+
+                    `${page.name} : ${dimension.name}`,
+                    'body',
+                    {ignoreElements: ['[data-testid="catalog-items"]']}
+                );
+            }
+        }
 
 
     });
 });
-
-decribe

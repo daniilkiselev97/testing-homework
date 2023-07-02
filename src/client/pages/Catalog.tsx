@@ -32,7 +32,7 @@ export const Catalog: React.FC = () => {
                     <h1 data-testid='page-name'>Catalog</h1>
                 </div>
             </div>
-            <div className="row">
+            <div data-testid="catalog-items" className="row">
                 {items}
             </div>
         </div>
