@@ -5,33 +5,7 @@ const assertOptions = {
     captureElementFromTop: true,
 };
 
-// describe('microsoft', async function() {
-//     it('Тест, который пройдет', async function() {
-//         await this.browser.url('https://www.microsoft.com/ru-ru/');
-//         await this.browser.assertView('plain', 'body');
 
-//         const title = await this.browser.$('#uhfLogo').getText();
-//         assert.equal(title, 'Microsoft');
-//     });
-// });
-
-// describe('Конвертор валют', ()=>{
-//     it('должен появиться на странице', async({browser})=>{
-//         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
-//         const [page] = await puppeteer.pages() //выбираем первую вкладку
-
-//         await page.goto('http://localhost:3000/hw/store/') //совершаем переход на сайт
-//         await page.keyboard.type('Курс доллара к рублю') //в элементе который в фокусе вводим
-//         await page.keyboard.press('Enter')
-//         // await browser.pause(1000) //ожидаем прогрузки
-
-//         // const selector = await page.$('.Convertor') //дергаем селектор
-//         // assert.ok(selector, 'Конвертор валют не появился')
-
-//         await page.waitForSelector('.Convertor',{timeout:5000}) //ждем выполнение определенного селектора
-//         await browser.asserView('plain', '.Convertor') //, {ignoreElements: [css Selectors]}
-//     })
-// })
 describe('Страницы', () => {
     it('в магазине должны быть страницы: главная, каталог, условия доставки, контакты', async ({
         browser,
@@ -67,7 +41,7 @@ describe('Страницы', () => {
         await page.goto('http://localhost:3000/hw/store/'); //совершаем переход на сайт
         await page.waitForSelector('[data-page="main-page-wrap"]', {
             timeout: 5000,
-        }); //, {ignoreElements: [css Selectors]}
+        });
         await browser.assertView(
             'home',
             '[data-page="main-page-wrap"]',
@@ -142,18 +116,150 @@ describe('Общие требования', () => {
             for (const dimension of dimensions) {
                 const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
                 const [tab] = await puppeteer.pages(); //выбираем первую вкладку
-        
-                await tab.goto(`http://localhost:3000/hw/store${page.url}`); //совершаем переход на сайт
-                await browser.setWindowSize(dimension.width, 10000)
-                await browser.assertView(
 
+                await tab.goto(`http://localhost:3000/hw/store${page.url}`); //совершаем переход на сайт
+                await browser.setWindowSize(dimension.width, 10000);
+                await browser.assertView(
                     `${page.name} : ${dimension.name}`,
                     'body',
-                    {ignoreElements: ['[data-testid="catalog-items"]']}
+                    { ignoreElements: ['[data-testid="catalog-items"]'] }
                 );
             }
         }
+    });
+    it('на ширине меньше 576px навигационное меню должно скрываться за "гамбургер"', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+        await tab.goto(`http://localhost:3000/hw/store/`); //совершаем переход на сайт
+        await browser.setWindowSize(576, 10000);
+        await browser.assertView('noburger-576', 'nav');
+        await browser.setWindowSize(575, 10000);
+        await browser.assertView('burger-575', 'nav');
+    });
+    it('при выборе элемента из меню "гамбургера", меню должно закрываться', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        await tab.goto(`http://localhost:3000/hw/store`); //совершаем переход на сайт
+        await browser.setWindowSize(575, 10000);
+        await browser.assertView('burgerBeforeClick-575', 'nav');
+
+        const burger = await tab.$('[data-burgerid="burger"]');
+        await burger.evaluate((form) => form.click());
+        await browser.assertView('burgerWithClick-575', 'nav');
+
+        const link = await tab.$('.nav-link');
+        await link.evaluate((form) => form.click());
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog`);
+        await browser.setWindowSize(575, 10000);
+        await browser.assertView('burgerAfterClickThroughLink-575', 'nav');
+    });
+});
+
+describe('Каталог', () => {
+    it('на странице с подробной информацией отображаются: название товара, его описание, цена, цвет, материал и кнопка * * "добавить в корзину"', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`); //совершаем переход на сайт
+
+        await tab.waitForSelector('.Product', {
+            timeout: 5000,
+        });
+
+        await browser.assertView('ItemsInfo', '.Product', {
+            ignoreElements: [
+                '.ProductDetails-Name',
+                'CartBadge',
+                '.ProductDetails-Description',
+                '.ProductDetails-Price',
+                '.ProductDetails-Color',
+                '.ProductDetails-Material',
+            ],
+        });
+    });
+});
+
+describe('Корзина', () => {
+    it('в шапке рядом со ссылкой на корзину должно отображаться количество не повторяющихся товаров в ней', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        await tab.goto(`http://localhost:3000/hw/store/`);
+
+        await browser.assertView('countLab', 'nav', {
+            ignoreElements: ['.nav-link .lab'],
+        });
+    });
+    it('в корзине должна отображаться таблица с добавленными в нее товарами', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        await tab.goto(`http://localhost:3000/hw/store/cart`);
+
+        await browser.assertView('cart', '.Cart', {
+            ignoreElements: [
+                '[data-testid="4"]',
+                '.Cart-OrderPrice',
+                '.infoaboutcart',
+            ],
+        });
+    });
+    it('для каждого товара должны отображаться название, цена, количество , стоимость, а также должна отображаться общая сумма заказа', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        await tab.goto(`http://localhost:3000/hw/store/cart`);
+
+        await browser.assertView('cart', '.Cart', {
+            ignoreElements: [
+                '[data-testid="4"]',
+                '.Cart-OrderPrice',
+                '.infoaboutcart',
+            ],
+        });
+    });
+    it('в корзине должна быть кнопка "очистить корзину", по нажатию на которую все товары должны удаляться', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        await tab.goto(`http://localhost:3000/hw/store/cart`);
+        
+        const cart = await tab.$('.Cart-Clear');
+        if(cart){
+            await cart.evaluate((form) => form.click());
+        }
+
+        await browser.assertView('cartAfterDelete', '.Cart');
 
 
+
+        
+    });
+    it('если корзина пустая, должна отображаться ссылка на каталог товаров', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        await tab.goto(`http://localhost:3000/hw/store/cart`);
+        
+        const cartTable = await tab.$('.Cart-Table');
+        if(!cartTable){
+            await browser.assertView('emptyCart', '.Cart');
+
+        }
+
+        
     });
 });

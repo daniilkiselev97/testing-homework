@@ -29,7 +29,7 @@ export const Application: FC = () => {
     }, [setCollapsed]);
 
     const count = Object.keys(cart).length;
-    const cartLabel = count ? `Cart (${count})` : 'Cart';
+    const cartLabel = count ? `(${count})` : '';
     const navbarClass = collapsed ? 'collapse navbar-collapse' : 'navbar-collapse';
 
     return <div className={bem()}>
@@ -37,15 +37,15 @@ export const Application: FC = () => {
         <nav data-testid = 'links' className="navbar navbar-expand-sm navbar-light bg-light">
             <div  className="container">
                 <Link   className={bem('Brand', ['navbar-brand'])} to="/">Example store</Link>
-                <button className={bem('Toggler', ['navbar-toggler'])} aria-label="Toggle navigation" onClick={toggle}>
+                <button data-burgerid = 'burger' className={bem('Toggler', ['navbar-toggler'])} aria-label="Toggle navigation" onClick={toggle}>
                     <span className="navbar-toggler-icon"></span>
                 </button>
                 <div className={bem('Menu', [navbarClass])}>
                     <div  className="navbar-nav">
-                        <NavLink  className="nav-link" activeClassName="active" to="/catalog" onClick={hide}>Catalog</NavLink>
+                        <NavLink   className="nav-link" activeClassName="active" to="/catalog" onClick={hide}>Catalog</NavLink>
                         <NavLink  className="nav-link" activeClassName="active" to="/delivery" onClick={hide}>Delivery</NavLink>
                         <NavLink  className="nav-link" activeClassName="active" to="/contacts" onClick={hide}>Contacts</NavLink>
-                        <NavLink  className="nav-link" activeClassName="active" to="/cart" onClick={hide}>{cartLabel}</NavLink>
+                        <NavLink  className="nav-link" activeClassName="active" to="/cart" onClick={hide}>Cart<span className='lab'>{cartLabel}</span></NavLink>
                     </div>
                 </div>
             </div>

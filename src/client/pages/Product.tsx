@@ -28,5 +28,5 @@ export const Product: React.FC = () => {
         <ProductDetails product={product}/> :
         'LOADING';
 
-    return <div className={bem()}><Helmet title={product?.name} />{content}</div>;
+    return <div  className={bem()}><Helmet title={product?.name} />{content}</div>;
 }
