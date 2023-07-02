@@ -8,7 +8,7 @@ const bem = cn('Delivery');
 
 export const Delivery: React.FC = () => {
     return (
-        <div className={bem()}>
+        <div data-page='delivery-page-wrap' className={bem()}>
             <Helmet title="Delivery" />
             <div className="row">
                 <div className="col">
