@@ -41,6 +41,24 @@ const mockRequest = (request) => {
         });
         return;
     }
+    if (request.url() === 'http://localhost:3000/hw/store/api/products/0') {
+        request.respond({
+            content: 'application/json',
+            headers: { 'Access-Control-Allow-Origin': '*' },
+            body: JSON.stringify(
+                {
+                    id: 0,
+                    name: 'Handmade Car',
+                    description:
+                        "Boston's most advanced compression wear technology increases muscle oxygenation, stabilizes active muscles",
+                    price: 148,
+                    color: 'lime',
+                    material: 'Steel',
+                },
+            ),
+        });
+        return;
+    }
     request.continue();
 };
 
@@ -211,22 +229,14 @@ describe('Каталог', () => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
 
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
         await tab.goto(`http://localhost:3000/hw/store/catalog/0`); //совершаем переход на сайт
 
-        await tab.waitForSelector('.Product', {
-            timeout: 5000,
-        });
-
-        await browser.assertView('ItemsInfo', '.Product', {
-            ignoreElements: [
-                '.ProductDetails-Name',
-                'CartBadge',
-                '.ProductDetails-Description',
-                '.ProductDetails-Price',
-                '.ProductDetails-Color',
-                '.ProductDetails-Material',
-            ],
-        });
+        
+        await browser.assertView('ItemsInfo', '.Product');
     });
     it('в каталоге должны отображаться товары, список которых приходит с сервера', async ({
         browser,
@@ -257,16 +267,12 @@ describe('Каталог', () => {
         const wrap_link = await tab.$('.ProductItem-DetailsLink');
 
         const link = await (await wrap_link.getProperty('href')).jsonValue();
-        
-        assert.equal(link, "http://localhost:3000/hw/store/catalog/0");
 
+        assert.equal(link, 'http://localhost:3000/hw/store/catalog/0');
 
         await browser.assertView('card-name', '.ProductItem-Name');
         await browser.assertView('card-price', '.ProductItem-Price');
         await browser.assertView('card-link', '.ProductItem-DetailsLink');
-
-
-
     });
 });
 
