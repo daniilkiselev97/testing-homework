@@ -299,6 +299,58 @@ describe('Каталог', () => {
 
         
     });
+    it('если товар уже добавлен в корзину, повторное нажатие кнопки "добавить в корзину" должно увеличивать его количество', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`);
+
+        const buttonAddCart = await tab.$('.ProductDetails-AddToCart');
+
+        await buttonAddCart.evaluate((form) => form.click());
+
+        await buttonAddCart.evaluate((form) => form.click());
+
+        await tab.goto(`http://localhost:3000/hw/store/cart`);
+
+        const wrap_count = await tab.$('.Cart-Count');
+
+        const countText = await (await wrap_count.getProperty('innerText')).jsonValue();
+
+        assert.equal(countText, '2');
+
+
+    });
+    it('содержимое корзины должно сохраняться между перезагрузками страницы', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`);
+
+        const buttonAddCart = await tab.$('.ProductDetails-AddToCart');
+
+        await buttonAddCart.evaluate((form) => form.click());
+
+        await tab.goto(`http://localhost:3000/hw/store/cart`);
+
+        await tab.reload()
+
+        await browser.assertView('cartTable', '.Cart-Table');
+
+        
+    });
     
 });
 
