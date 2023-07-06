@@ -274,6 +274,32 @@ describe('Каталог', () => {
         await browser.assertView('card-price', '.ProductItem-Price');
         await browser.assertView('card-link', '.ProductItem-DetailsLink');
     });
+    it('если товар уже добавлен в корзину, в каталоге и на странице товара должно отображаться сообщение об этом', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`);
+
+        const buttonAddCart = await tab.$('.ProductDetails-AddToCart');
+
+        await buttonAddCart.evaluate((form) => form.click());
+
+        await browser.assertView('itemsbadge', '.CartBadge');
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/`);
+
+        await browser.assertView('itemsbadgeoncatalog', '.CartBadge');
+
+
+        
+    });
+    
 });
 
 describe('Корзина', () => {
