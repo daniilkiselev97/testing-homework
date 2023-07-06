@@ -1,10 +1,53 @@
 const { assert } = require('chai');
 
+const mockRequest = (request) => {
+    // console.log('on request', request.url());
+    if (request.url() === 'http://localhost:3000/hw/store/api/products') {
+        request.respond({
+            content: 'application/json',
+            headers: { 'Access-Control-Allow-Origin': '*' },
+            body: JSON.stringify([
+                {
+                    id: 0,
+                    name: 'Rustic Salad',
+                    price: 175,
+                },
+                {
+                    id: 1,
+                    name: 'Rustic Bike',
+                    price: 87,
+                },
+                {
+                    id: 2,
+                    name: 'Ergonomic Ball',
+                    price: 290,
+                },
+                {
+                    id: 3,
+                    name: 'Rustic Bike',
+                    price: 54,
+                },
+                {
+                    id: 4,
+                    name: 'Fantastic Pants',
+                    price: 134,
+                },
+                {
+                    id: 5,
+                    name: 'Fantastic Chair',
+                    price: 657,
+                },
+            ]),
+        });
+        return;
+    }
+    request.continue();
+};
+
 const assertOptions = {
     screenshotDelay: 100,
     captureElementFromTop: true,
 };
-
 
 describe('Страницы', () => {
     it('в магазине должны быть страницы: главная, каталог, условия доставки, контакты', async ({
@@ -185,6 +228,46 @@ describe('Каталог', () => {
             ],
         });
     });
+    it('в каталоге должны отображаться товары, список которых приходит с сервера', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog`); //совершаем переход на сайт
+
+        await browser.assertView('cards-list', '[data-testid="catalog-items"]');
+    });
+    it('для каждого товара в каталоге отображается название, цена и ссылка на страницу с подробной информацией о товаре', async ({
+        browser,
+    }) => {
+        const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
+        const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/`); //совершаем переход на сайт
+
+        const wrap_link = await tab.$('.ProductItem-DetailsLink');
+
+        const link = await (await wrap_link.getProperty('href')).jsonValue();
+        
+        assert.equal(link, "http://localhost:3000/hw/store/catalog/0");
+
+
+        await browser.assertView('card-name', '.ProductItem-Name');
+        await browser.assertView('card-price', '.ProductItem-Price');
+        await browser.assertView('card-link', '.ProductItem-DetailsLink');
+
+
+
+    });
 });
 
 describe('Корзина', () => {
@@ -235,17 +318,13 @@ describe('Корзина', () => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
         await tab.goto(`http://localhost:3000/hw/store/cart`);
-        
+
         const cart = await tab.$('.Cart-Clear');
-        if(cart){
+        if (cart) {
             await cart.evaluate((form) => form.click());
         }
 
         await browser.assertView('cartAfterDelete', '.Cart');
-
-
-
-        
     });
     it('если корзина пустая, должна отображаться ссылка на каталог товаров', async ({
         browser,
@@ -253,13 +332,10 @@ describe('Корзина', () => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
         await tab.goto(`http://localhost:3000/hw/store/cart`);
-        
+
         const cartTable = await tab.$('.Cart-Table');
-        if(!cartTable){
+        if (!cartTable) {
             await browser.assertView('emptyCart', '.Cart');
-
         }
-
-        
     });
 });
