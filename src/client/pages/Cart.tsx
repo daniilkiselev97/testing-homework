@@ -74,7 +74,7 @@ export const Cart: React.FC = () => {
         content = (
             <>
                 Cart is empty. Please select products in the{' '}
-                <Link to="/catalog">catalog</Link>.
+                <Link className='linkEmpty' to="/catalog">catalog</Link>.
             </>
         );
     }

@@ -360,66 +360,109 @@ describe('Корзина', () => {
     }) => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
-        await tab.goto(`http://localhost:3000/hw/store/`);
 
-        await browser.assertView('countLab', 'nav', {
-            ignoreElements: ['.nav-link .lab'],
-        });
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`);
+
+        const buttonAddCart = await tab.$('.ProductDetails-AddToCart');
+
+        await buttonAddCart.evaluate((form) => form.click());
+
+        await browser.assertView('cartCountHead', '.lab');
+
+
     });
     it('в корзине должна отображаться таблица с добавленными в нее товарами', async ({
         browser,
     }) => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+
+
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`);
+
+        const buttonAddCart = await tab.$('.ProductDetails-AddToCart');
+
+        await buttonAddCart.evaluate((form) => form.click());
+
         await tab.goto(`http://localhost:3000/hw/store/cart`);
 
-        await browser.assertView('cart', '.Cart', {
-            ignoreElements: [
-                '[data-testid="4"]',
-                '.Cart-OrderPrice',
-                '.infoaboutcart',
-            ],
-        });
+        await browser.assertView('cartsTable', '.Cart-Table ');
     });
     it('для каждого товара должны отображаться название, цена, количество , стоимость, а также должна отображаться общая сумма заказа', async ({
         browser,
     }) => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`);
+
+        const buttonAddCart = await tab.$('.ProductDetails-AddToCart');
+
+        await buttonAddCart.evaluate((form) => form.click());
+
         await tab.goto(`http://localhost:3000/hw/store/cart`);
 
-        await browser.assertView('cart', '.Cart', {
-            ignoreElements: [
-                '[data-testid="4"]',
-                '.Cart-OrderPrice',
-                '.infoaboutcart',
-            ],
-        });
+        await browser.assertView('cartName', '.Cart-Name ');
+        await browser.assertView('cartPrice', '.Cart-Price ');
+        await browser.assertView('cartCount', '.Cart-Count ');
+        await browser.assertView('cartTotalPrice', '.Cart-OrderPrice');
     });
     it('в корзине должна быть кнопка "очистить корзину", по нажатию на которую все товары должны удаляться', async ({
         browser,
     }) => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
-        await tab.goto(`http://localhost:3000/hw/store/cart`);
 
-        const cart = await tab.$('.Cart-Clear');
-        if (cart) {
-            await cart.evaluate((form) => form.click());
-        }
+        await tab.setRequestInterception(true);
 
-        await browser.assertView('cartAfterDelete', '.Cart');
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/catalog/0`);
+
+        const buttonAddCart = await tab.$('.ProductDetails-AddToCart');
+
+        await buttonAddCart.evaluate((form) => form.click());
+
+        await tab.goto(`http://localhost:3000/hw/store/cart`);  
+
+        const buttonClearCart = await tab.$('.Cart-Clear');
+        await buttonClearCart.evaluate((form) => form.click()); 
+
+        await browser.assertView('cartEmpty', '.infoaboutcart');
+
+        
     });
     it('если корзина пустая, должна отображаться ссылка на каталог товаров', async ({
         browser,
     }) => {
         const puppeteer = await browser.getPuppeteer(); //отключение через фрэйм и удобно по этому протоколу взаимод с браузером
         const [tab] = await puppeteer.pages(); //выбираем первую вкладку
-        await tab.goto(`http://localhost:3000/hw/store/cart`);
 
-        const cartTable = await tab.$('.Cart-Table');
-        if (!cartTable) {
-            await browser.assertView('emptyCart', '.Cart');
-        }
+        await tab.setRequestInterception(true);
+
+        tab.on('request', mockRequest);
+
+        await tab.goto(`http://localhost:3000/hw/store/cart`);  
+
+        const wrap_link = await tab.$('.linkEmpty');
+
+        const link = await (await wrap_link.getProperty('href')).jsonValue()
+
+
+        assert.equal(link, 'http://localhost:3000/hw/store/catalog'); 
+
+
+ 
     });
 });
